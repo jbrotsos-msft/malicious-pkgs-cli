@@ -1,0 +1,17 @@
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/
+*.dll
+*.exe
+*.pdb
+node_modules/
+*.log
+test-app-sbom*.json
+vuln-container-sbom.json
+sbom-output.*
+fake-mal-sbom.json
+.defender/
+test-malicious-project/
