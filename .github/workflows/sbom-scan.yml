@@ -1,0 +1,51 @@
+name: SBOM Scan
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  sbom-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+      
+    - name: Run SBOM scan on test-app
+      run: |
+        dotnet run --project . --configuration Release -- \
+          scan sbom ./test-app \
+          --sbom-format cyclonedx-json \
+          --sbom-output-file test-app-sbom.json \
+          --fail-on-malicious
+      
+    - name: Upload SBOM artifact
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-report
+        path: test-app-sbom.json
+        retention-days: 30
+        
+    - name: Upload SBOM on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-report-with-malicious
+        path: test-app-sbom.json
+        retention-days: 30
